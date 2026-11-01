@@ -40,6 +40,11 @@
     if (params.has('dark')) updated.dark = sanitizeHex(params.get('dark'));
     if (params.has('bg')) updated.bg = sanitizeHex(params.get('bg'));
     if (params.has('wa')) updated.wa = sanitizePhone(params.get('wa'));
+    if (params.has('phone')) {
+      var phoneSanitized = sanitizePhone(params.get('phone'));
+      updated.phone = phoneSanitized;
+      if (!updated.wa) updated.wa = phoneSanitized;
+    }
     if (params.has('logo')) updated.logo = params.get('logo').trim();
 
     try {
@@ -104,18 +109,25 @@
 
     if (cfg.brand) {
       var isAdmin = window.location.pathname.indexOf('admin') !== -1;
-      document.title = cfg.brand + (isAdmin ? ' — Command Center & POS' : ' — Official Boutique Store');
+      document.title = cfg.brand + (isAdmin ? ' — Technician Workbench & Kanban' : ' — Diagnostic Workbench & Job-Sheet Tracker');
 
       document.querySelectorAll('.sidebar-brand-title').forEach(function (el) {
-        renderSplitBrand(el, cfg.brand, 'Hub');
+        renderSplitBrand(el, cfg.brand, 'Lab');
       });
 
       document.querySelectorAll('.mobile-brand').forEach(function (el) {
-        renderSplitBrand(el, cfg.brand, 'Hub');
+        renderSplitBrand(el, cfg.brand, 'Lab');
       });
 
       document.querySelectorAll('[data-wl-brand]').forEach(function (el) {
         el.textContent = cfg.brand;
+      });
+    }
+
+    if (cfg.phone || cfg.wa) {
+      var activePhone = cfg.phone || cfg.wa;
+      document.querySelectorAll('[data-wl-phone]').forEach(function (el) {
+        el.textContent = activePhone;
       });
     }
 
@@ -152,7 +164,7 @@
 
     // Propagate query params across internal links (index.html <-> admin.html)
     var qs = new URLSearchParams();
-    ['brand', 'tagline', 'primary', 'dark', 'bg', 'wa', 'logo'].forEach(function (k) {
+    ['brand', 'tagline', 'primary', 'dark', 'bg', 'wa', 'phone', 'logo'].forEach(function (k) {
       if (cfg[k]) qs.set(k, cfg[k]);
     });
     var qsStr = qs.toString();

@@ -6,197 +6,1608 @@
   <title data-wl-brand>APEX FIX // Diagnostic Workbench & Job-Sheet Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="theme-tokens.css">
   <script src="whitelabel.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg-main, #F8FAFC);
-      color: var(--color-dark, #0B1120);
-      font-family: var(--font-primary, 'Inter', sans-serif);
-      line-height: 1.5;
+    :root {
+      --color-primary: #0284C7;
+      --brand-primary: var(--color-primary);
+      --color-primary-light: #E0F2FE;
+      --color-dark: #0B1120;
+      --color-slate-800: #1E293B;
+      --color-slate-700: #334155;
+      --color-slate-600: #475569;
+      --color-slate-400: #94A3B8;
+      --color-slate-200: #E2E8F0;
+      --bg-main: #F8FAFC;
+      --bg-canvas: #FFFFFF;
+      --color-success: #10B981;
+      --color-warning: #F59E0B;
+      --color-danger: #EF4444;
+      --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --shadow-hover: 0 10px 25px -4px rgba(2, 132, 199, 0.12);
+      --radius: 8px;
     }
-    .esd-bar {
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-main);
+      color: var(--color-dark);
+      font-family: var(--font-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Movement P: High-Precision ESD Status Bar */
+    .esd-telemetry-bar {
       background: #0284C7;
-      color: #FFF;
-      padding: 8px 30px;
-      font-family: var(--font-mono, monospace);
+      background: linear-gradient(90deg, #0369A1 0%, #0284C7 60%, #0EA5E9 100%);
+      color: #FFFFFF;
+      padding: 6px 24px;
+      font-family: var(--font-mono);
       font-size: 11px;
       display: flex;
       justify-content: space-between;
-      letter-spacing: 1px;
+      align-items: center;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    .tracker-header {
-      background: #FFF;
-      border-bottom: 1px solid var(--border-color, #CBD5E1);
-      padding: 20px 40px;
+
+    .telemetry-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background: #22C55E;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22C55E;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Main Navigation Header */
+    .service-nav {
+      background: #FFFFFF;
+      border-bottom: 1px solid #E2E8F0;
+      padding: 16px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
 
-    .main-wrap {
-      max-width: 900px;
-      margin: 40px auto 100px;
-      padding: 0 24px;
-    }
-
-    /* IMEI / Job-Sheet Search Bar */
-    .lookup-box {
-      background: #FFF;
-      border: 1px solid #CBD5E1;
-      border-radius: 10px;
-      padding: 24px;
-      margin-bottom: 30px;
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
-    }
-    .search-flex { display: flex; gap: 10px; margin-top: 10px; }
-    .track-input {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #CBD5E1;
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 14px;
-    }
-    .track-btn {
-      background: #0284C7;
-      color: #FFF;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    /* 5-Stage Diagnostic Progress Stepper */
-    .stepper-card {
-      background: #FFF;
-      border: 1px solid #CBD5E1;
-      border-radius: 10px;
-      padding: 30px;
-      margin-bottom: 30px;
-    }
-    .step-row {
+    .brand-wrap {
       display: flex;
-      justify-content: space-between;
-      position: relative;
-      margin: 20px 0;
+      align-items: center;
+      gap: 12px;
     }
-    .step-row::before {
-      content: "";
-      position: absolute;
-      top: 15px; left: 0; right: 0;
-      height: 2px;
-      background: #E2E8F0;
-      z-index: 1;
-    }
-    .step-node {
-      position: relative;
-      z-index: 2;
-      background: #FFF;
-      text-align: center;
-      width: 120px;
-    }
-    .node-dot {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #E2E8F0;
-      color: #64748B;
+
+    .brand-logo-mark {
+      width: 36px;
+      height: 36px;
+      background: var(--color-primary);
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
+      color: #FFF;
+      font-weight: 800;
+      font-size: 18px;
       font-family: var(--font-mono);
-      margin: 0 auto 8px;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
     }
-    .node-dot.done { background: #10B981; color: #FFF; }
-    .node-dot.active { background: #0284C7; color: #FFF; box-shadow: 0 0 10px rgba(2, 132, 199, 0.5); }
-    .node-title { font-size: 11px; font-weight: 600; color: #475569; }
+
+    .brand-text-title {
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.4px;
+      color: #0F172A;
+    }
+
+    .brand-text-sub {
+      font-size: 11px;
+      color: #64748B;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bench-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #F1F5F9;
+      color: #0F172A;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #CBD5E1;
+      transition: all 0.2s ease;
+    }
+
+    .bench-link-btn:hover {
+      background: #E2E8F0;
+      border-color: #94A3B8;
+      color: #0284C7;
+    }
+
+    .print-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0F172A;
+      color: #FFF;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .print-btn:hover {
+      background: #1E293B;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+    }
+
+    /* Container Wrap */
+    .tracker-container {
+      max-width: 980px;
+      margin: 32px auto 80px;
+      padding: 0 20px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Technical Lookup Header Widget */
+    .lookup-panel {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+    }
+
+    .lookup-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #0284C7;
+      background: #E0F2FE;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .lookup-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .lookup-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 500;
+      color: #0F172A;
+      background: #F8FAFC;
+      transition: all 0.2s ease;
+    }
+
+    .lookup-input:focus {
+      outline: none;
+      border-color: #0284C7;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .lookup-submit {
+      background: var(--color-primary);
+      color: #FFFFFF;
+      border: none;
+      padding: 0 28px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .lookup-submit:hover {
+      background: #0369A1;
+    }
+
+    .quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 12px;
+      color: #64748B;
+    }
+
+    .quick-chip {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      color: #0F172A;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .quick-chip:hover {
+      background: #E2E8F0;
+      border-color: #94A3B8;
+      color: #0284C7;
+    }
+
+    /* Device Card Overview */
+    .device-card {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .device-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #E2E8F0;
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .device-identity h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0F172A;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .device-type-badge {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      background: #F1F5F9;
+      color: #475569;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #E2E8F0;
+    }
+
+    .device-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #64748B;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-pill.awaiting {
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+    }
+
+    .status-pill.in_repair {
+      background: #E0F2FE;
+      color: #0369A1;
+      border: 1px solid #7DD3FC;
+    }
+
+    .status-pill.diagnosis {
+      background: #EDE9FE;
+      color: #5B21B6;
+      border: 1px solid #C4B5FD;
+    }
+
+    .status-pill.ready {
+      background: #DCFCE7;
+      color: #166534;
+      border: 1px solid #86EFAC;
+    }
+
+    .status-pill.intake {
+      background: #F1F5F9;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+    }
+
+    /* 6-Stage Visual Stepper */
+    .stepper-section {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .stepper-header-title {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #64748B;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stepper-rail {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      position: relative;
+      margin-bottom: 28px;
+    }
+
+    .step-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .step-node {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #F1F5F9;
+      color: #94A3B8;
+      border: 2px solid #CBD5E1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      position: relative;
+      z-index: 2;
+      transition: all 0.3s ease;
+    }
+
+    .step-col.completed .step-node {
+      background: #10B981;
+      border-color: #10B981;
+      color: #FFFFFF;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+
+    .step-col.active .step-node {
+      background: #0284C7;
+      border-color: #0284C7;
+      color: #FFFFFF;
+      box-shadow: 0 0 14px rgba(2, 132, 199, 0.5);
+      animation: pulse-ring 2s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.6); }
+      70% { box-shadow: 0 0 0 10px rgba(2, 132, 199, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+    }
+
+    .step-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748B;
+      margin-top: 10px;
+      line-height: 1.3;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .step-col.completed .step-title {
+      color: #0F172A;
+    }
+
+    .step-col.active .step-title {
+      color: #0284C7;
+      font-weight: 800;
+    }
+
+    .step-time {
+      font-size: 10px;
+      color: #94A3B8;
+      font-family: var(--font-mono);
+      margin-top: 4px;
+    }
+
+    /* Live Bench Note & Technician Callout */
+    .bench-callout {
+      background: #F8FAFC;
+      border-left: 4px solid var(--color-primary);
+      padding: 16px 20px;
+      border-radius: 0 6px 6px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .technician-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tech-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1E293B;
+      color: #38BDF8;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #CBD5E1;
+    }
+
+    .tech-info {
+      font-size: 13px;
+    }
+
+    .tech-name {
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .tech-title {
+      font-size: 11px;
+      color: #64748B;
+      font-family: var(--font-mono);
+    }
+
+    .bench-note-text {
+      flex: 1;
+      font-size: 13px;
+      color: #334155;
+      font-style: italic;
+      background: #FFFFFF;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #E2E8F0;
+    }
+
+    /* Two-Column Diagnostic Breakdown */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 820px) {
+      .grid-2col { grid-template-columns: 1fr; }
+      .stepper-rail { grid-template-columns: repeat(3, 1fr); row-gap: 20px; }
+      .lookup-row { flex-direction: column; }
+    }
+
+    /* 12-Point Multi-Triage Inspection Matrix */
+    .checklist-card {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .section-headline {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0F172A;
+      font-family: var(--font-mono);
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #E2E8F0;
+      padding-bottom: 10px;
+    }
+
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .check-item {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      padding: 10px 12px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .check-label {
+      font-weight: 500;
+      color: #334155;
+    }
+
+    .check-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .badge-pass { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+    .badge-fail { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+    .badge-warn { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+    .badge-untested { background: #F1F5F9; color: #64748B; border: 1px solid #CBD5E1; }
+
+    /* Interactive Microscope Photo Inspection Lightbox */
+    .microscope-card {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .photo-tab-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #E2E8F0;
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+
+    .photo-tab {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      color: #475569;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .photo-tab.active {
+      background: #0284C7;
+      color: #FFFFFF;
+      border-color: #0284C7;
+    }
+
+    .microscope-viewer {
+      background: #0F172A;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      position: relative;
+      cursor: zoom-in;
+    }
+
+    .microscope-stage {
+      width: 100%;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .microscope-stage svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .photo-caption-bar {
+      background: #1E293B;
+      color: #94A3B8;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 8px 12px;
+      border-top: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+    }
 
     /* Customer Estimate Approval Card */
-    .quote-box {
-      background: #F0F9FF;
-      border: 1px solid #BAE6FD;
-      border-radius: 8px;
-      padding: 24px;
+    .estimate-card {
+      background: #FFFFFF;
+      border: 2px solid #BAE6FD;
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(2, 132, 199, 0.08);
+      position: relative;
+    }
+
+    .estimate-card.is-approved {
+      border-color: #86EFAC;
+      background: #F0FDF4;
+    }
+
+    .estimate-card.is-declined {
+      border-color: #FCA5A5;
+      background: #FEF2F2;
+    }
+
+    .quote-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #0369A1;
+      background: #E0F2FE;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .estimate-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 13px;
+    }
+
+    .estimate-table th {
+      text-align: left;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #64748B;
+      border-bottom: 1.5px solid #CBD5E1;
+      padding: 8px 6px;
+      text-transform: uppercase;
+    }
+
+    .estimate-table td {
+      padding: 10px 6px;
+      border-bottom: 1px dashed #E2E8F0;
+      color: #1E293B;
+    }
+
+    .total-row {
+      border-top: 2px solid #0284C7 !important;
+      font-weight: 800;
+      font-size: 16px;
+      color: #0F172A;
+    }
+
+    .action-btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn-approve {
+      flex: 2;
+      min-width: 220px;
+      background: #10B981;
+      color: #FFFFFF;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-approve:hover {
+      background: #059669;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-decline {
+      flex: 1;
+      min-width: 160px;
+      background: #F1F5F9;
+      color: #64748B;
+      border: 1px solid #CBD5E1;
+      padding: 14px 20px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-decline:hover {
+      background: #FEE2E2;
+      color: #DC2626;
+      border-color: #FCA5A5;
+    }
+
+    .approval-confirmed-banner {
+      display: none;
+      background: #DCFCE7;
+      border: 1px solid #86EFAC;
+      color: #166534;
+      padding: 16px;
+      border-radius: 6px;
+      margin-top: 14px;
       font-family: var(--font-mono);
       font-size: 13px;
     }
+
+    .declined-banner {
+      display: none;
+      background: #FEE2E2;
+      border: 1px solid #FCA5A5;
+      color: #991B1B;
+      padding: 16px;
+      border-radius: 6px;
+      margin-top: 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    /* Timeline History Log */
+    .timeline-card {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 24px;
+    }
+
+    .timeline-list {
+      list-style: none;
+      position: relative;
+      padding-left: 24px;
+      margin-top: 16px;
+    }
+
+    .timeline-list::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 7px;
+      width: 2px;
+      background: #E2E8F0;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -24px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #0284C7;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 0 0 1px #CBD5E1;
+    }
+
+    .timeline-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .timeline-meta {
+      font-size: 11px;
+      color: #64748B;
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    .timeline-body {
+      font-size: 12px;
+      color: #334155;
+      margin-top: 4px;
+      background: #F8FAFC;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #E2E8F0;
+    }
+
+    /* Technical Footer */
+    .workbench-footer {
+      background: #0F172A;
+      color: #94A3B8;
+      padding: 30px 24px;
+      font-size: 12px;
+      border-top: 1px solid #1E293B;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    /* Printable Diagnostic Sheet (Media Print) */
+    @media print {
+      body { background: #FFF !important; color: #000 !important; }
+      .esd-telemetry-bar, .lookup-panel, .action-btn-row, .workbench-footer, .bench-link-btn, .print-btn, .quick-tags {
+        display: none !important;
+      }
+      .tracker-container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      .stepper-section, .device-card, .checklist-card, .estimate-card, .timeline-card {
+        box-shadow: none !important;
+        border: 1px solid #666 !important;
+        page-break-inside: avoid;
+        margin-bottom: 16px !important;
+      }
+    }
   </style>
 </head>
-<body data-layout-archetype="esd-repair-workbench">
-  <div class="esd-bar">
-    <span>BENCH #03 ESD-SAFE CERTIFIED WORKSPACE</span>
-    <span>APPLE / ANDROID / EV DIAGNOSTIC LAB</span>
-    <span>JOB TRACKER TELEMETRY</span>
+<body data-layout-archetype="technical-repair-stepper">
+
+  <!-- Movement P: ESD Telemetry Top Bar -->
+  <div class="esd-telemetry-bar">
+    <div class="telemetry-item">
+      <span class="live-dot"></span>
+      <span>ESD GROUND STATION: PASS (0.02V)</span>
+    </div>
+    <div class="telemetry-item" style="display:none; @media(min-width:640px){display:inline-flex;}">
+      <span>BENCH TEMP: 24.2°C • RH: 42%</span>
+    </div>
+    <div class="telemetry-item">
+      <span style="opacity:0.8;">ISO 9001:2026 CALIBRATED</span>
+      <span style="margin: 0 4px;">•</span>
+      <span id="liveClock" style="font-weight:700;">14:32:08 UTC</span>
+    </div>
   </div>
 
-  <header class="tracker-header">
-    <div style="font-weight:800; font-size:20px;" data-wl-brand>APEX DEVICE LABS</div>
-    <div style="font-family:var(--font-mono); font-size:12px;">
-      <a href="admin.html" style="color:#0284C7; text-decoration:none; font-weight:700;">[ TECHNICIAN BENCH KANBAN ]</a>
+  <!-- Main Navigation Header -->
+  <header class="service-nav">
+    <div class="brand-wrap">
+      <div class="brand-logo-mark">⚡</div>
+      <div>
+        <div class="brand-text-title" data-wl-brand>APEX FIX // Diagnostic Workbench</div>
+        <div class="brand-text-sub" data-wl-tagline>ISO ESD-S20.20 Certified Precision Repair Lab</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="print-btn" onclick="printJobSheet()">
+        <span>🖨️ Print Job Sheet</span>
+      </button>
+      <a href="admin.html" class="bench-link-btn">
+        <span>🔧 Technician Workbench Kanban</span>
+        <span>→</span>
+      </a>
     </div>
   </header>
 
-  <div class="main-wrap">
-    <div class="lookup-box">
-      <div style="font-size:12px; font-family:var(--font-mono); color:#64748B;">ENTER JOB-TICKET OR DEVICE IMEI // SERIAL:</div>
-      <div class="search-flex">
-        <input type="text" class="track-input" value="#JOB-9412" id="jobQuery">
-        <button class="track-btn" onclick="trackJob()">TRACK REPAIR</button>
-      </div>
-      <div style="font-size:11px; color:#94A3B8; margin-top:8px;">Try demo: #JOB-9412 (iPhone 14 Pro — OLED Micro-Solder)</div>
-    </div>
+  <!-- Main Tracking Container -->
+  <main class="tracker-container">
 
-    <!-- 5-Stage Stepper -->
-    <div class="stepper-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
+    <!-- Search / Lookup Bar -->
+    <section class="lookup-panel">
+      <span class="lookup-tag">LIVE SERVICE TELEMETRY LOOKUP</span>
+      <div style="font-size:13px; color:#475569; font-weight:600;">ENTER JOB-TICKET #, IMEI, SERIAL NUMBER, OR PHONE:</div>
+      <form class="lookup-row" onsubmit="event.preventDefault(); trackJob();">
+        <input type="text" id="trackInput" class="lookup-input" value="JOB-8842" placeholder="e.g. JOB-8842, 358911094821094, or 919847011223" autocomplete="off" />
+        <button type="submit" class="lookup-submit" id="trackSubmitBtn">
+          <span>INSPECT BENCH STATUS</span>
+        </button>
+      </form>
+      <div class="quick-tags">
+        <span>Try Demo Tickets:</span>
+        <button type="button" class="quick-chip" onclick="setQuery('JOB-8842')">#JOB-8842 (iPhone 15 Pro Max — PMIC Reballing)</button>
+        <button type="button" class="quick-chip" onclick="setQuery('JOB-9413')">#JOB-9413 (MacBook Pro M2 — Liquid Damage)</button>
+        <button type="button" class="quick-chip" onclick="setQuery('JOB-9414')">#JOB-9414 (Ola S1 Pro — EV BMS Balancing)</button>
+        <button type="button" class="quick-chip" onclick="setQuery('JOB-9415')">#JOB-9415 (Dell XPS 15 — 3.5K OLED Swap)</button>
+      </div>
+    </section>
+
+    <!-- Device Overview Card -->
+    <section class="device-card" id="deviceOverview">
+      <div class="device-header">
+        <div class="device-identity">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="device-type-badge" id="devTypeBadge">SMARTPHONE</span>
+            <span style="font-family:var(--font-mono); font-size:12px; color:#64748B;" id="devPriorityBadge">PRIORITY: URGENT</span>
+          </div>
+          <h2 id="devTitle">Apple iPhone 15 Pro Max (256GB Natural Titanium)</h2>
+          <div class="device-meta-row">
+            <span>TICKET: <strong id="devTicketId" style="color:#0F172A;">JOB-8842</strong></span>
+            <span>CLIENT: <span id="devClient">Rahul Verma</span></span>
+            <span>SERIAL: <span id="devSerial">F17NQ299K5</span></span>
+            <span>IMEI: <span id="devImei">358911094821094</span></span>
+          </div>
+        </div>
         <div>
-          <span style="font-weight:700; font-size:16px;">TICKET #JOB-9412</span>
-          <span style="color:#64748B; margin-left:8px;">(Apple iPhone 14 Pro 256GB Space Black)</span>
+          <span class="status-pill awaiting" id="devStatusBadge">AWAITING ESTIMATE APPROVAL</span>
         </div>
-        <span style="background:#0284C7; color:#FFF; font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:4px;">STAGE: BENCH REPAIR</span>
+      </div>
+      <div style="font-size:13px; color:#334155; line-height:1.6;">
+        <strong style="font-family:var(--font-mono); color:#0F172A;">REPORTED SYMPTOMS // FAULT TELEMETRY:</strong>
+        <p id="devIssueDesc" style="margin-top:4px; color:#475569;">
+          No audio during incoming/outgoing cellular calls, ear speaker mute, recording voice memo causes immediate springboard crash. Thermal imaging indicates localized short on Audio PMIC power rail (U3100).
+        </p>
+      </div>
+    </section>
+
+    <!-- 6-Stage Visual Stepper -->
+    <section class="stepper-section">
+      <div class="stepper-header-title">
+        <span>6-STAGE PRECISION DIAGNOSTIC & REPAIR WORKFLOW</span>
+        <span style="color:#0284C7; font-size:11px;" id="currentStageProgress">STAGE 3 OF 6: QUOTE & APPROVAL</span>
       </div>
 
-      <div class="step-row">
-        <div class="step-node"><div class="node-dot done">✓</div><div class="node-title">01 INTAKE</div></div>
-        <div class="step-node"><div class="node-dot done">✓</div><div class="node-title">02 DIAGNOSTICS</div></div>
-        <div class="step-node"><div class="node-dot active">03</div><div class="node-title">03 SOLDERING</div></div>
-        <div class="step-node"><div class="node-dot">04</div><div class="node-title">04 QA TESTING</div></div>
-        <div class="step-node"><div class="node-dot">05</div><div class="node-title">05 READY</div></div>
+      <div class="stepper-rail" id="stepperRail">
+        <!-- Step 1 -->
+        <div class="step-col completed" id="stepNode1">
+          <div class="step-node">✓</div>
+          <div class="step-title">01 INTAKE</div>
+          <div class="step-time" id="stepTime1">-2h 00m</div>
+        </div>
+        <!-- Step 2 -->
+        <div class="step-col completed" id="stepNode2">
+          <div class="step-node">✓</div>
+          <div class="step-title">02 TRIAGE</div>
+          <div class="step-time" id="stepTime2">-1h 45m</div>
+        </div>
+        <!-- Step 3 -->
+        <div class="step-col active" id="stepNode3">
+          <div class="step-node">03</div>
+          <div class="step-title">03 QUOTE</div>
+          <div class="step-time" id="stepTime3">PENDING AUTH</div>
+        </div>
+        <!-- Step 4 -->
+        <div class="step-col" id="stepNode4">
+          <div class="step-node">04</div>
+          <div class="step-title">04 SOLDER</div>
+          <div class="step-time" id="stepTime4">QUEUED</div>
+        </div>
+        <!-- Step 5 -->
+        <div class="step-col" id="stepNode5">
+          <div class="step-node">05</div>
+          <div class="step-title">05 BURN-IN QA</div>
+          <div class="step-time" id="stepTime5">QUEUED</div>
+        </div>
+        <!-- Step 6 -->
+        <div class="step-col" id="stepNode6">
+          <div class="step-node">06</div>
+          <div class="step-title">06 HANDOVER</div>
+          <div class="step-time" id="stepTime6">FINAL</div>
+        </div>
       </div>
 
-      <!-- Itemized Estimate Breakdown -->
-      <div class="quote-box">
-        <div style="font-weight:700; margin-bottom:10px;">TECHNICIAN ESTIMATE BREAKDOWN:</div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span>• Genuine 120Hz Super Retina XDR OLED</span>
-          <span>₹4,800.00</span>
+      <!-- Live Bench Note Callout -->
+      <div class="bench-callout">
+        <div class="technician-badge">
+          <div class="tech-avatar" id="techInitials">RS</div>
+          <div class="tech-info">
+            <div class="tech-name" id="techName">Rahul Sharma</div>
+            <div class="tech-title" id="techStation">Bench #03 (ESD Solder Station) • Senior L4 Micro-Soldering</div>
+          </div>
         </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span>• Battery 3,200mAh Replacement + Seal</span>
-          <span>₹1,800.00</span>
+        <div class="bench-note-text" id="benchNoteText">
+          "Microscope inspection confirmed fractured solder balls under Audio IC (U3100). Micro-BGA laser stencil ready on pre-heater bench pending client authorization."
         </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-          <span>• Ultrasonic Board Cleaning & Labor</span>
-          <span>₹950.00</span>
+      </div>
+    </section>
+
+    <!-- Two Column Diagnostic: 12-Point Checklist & Microscope Lightbox -->
+    <div class="grid-2col">
+
+      <!-- 12-Point Multi-Triage Checklist -->
+      <section class="checklist-card">
+        <div class="section-headline">
+          <span>12-POINT INTAKE INSPECTION</span>
+          <span style="font-size:11px; color:#10B981;">PASSED: 9 / 12</span>
         </div>
-        <div style="border-top:1px dashed #0284C7; padding-top:8px; display:flex; justify-content:space-between; font-weight:700; font-size:15px;">
-          <span>TOTAL PAYABLE (INCL GST 18%):</span>
-          <span style="color:#0284C7;">₹8,909.00</span>
+        <div class="checklist-grid" id="checklistGrid">
+          <div class="check-item"><span class="check-label">1. Power On Boot</span><span class="check-badge badge-pass" id="chk_power">PASS</span></div>
+          <div class="check-item"><span class="check-label">2. Touch / 120Hz OLED</span><span class="check-badge badge-pass" id="chk_display">PASS</span></div>
+          <div class="check-item"><span class="check-label">3. FaceID / Biometrics</span><span class="check-badge badge-pass" id="chk_biometrics">PASS</span></div>
+          <div class="check-item"><span class="check-label">4. LCI Liquid Sensor</span><span class="check-badge badge-pass" id="chk_lci">WHITE (INTACT)</span></div>
+          <div class="check-item"><span class="check-label">5. iCloud / PIN Code</span><span class="check-badge badge-pass" id="chk_icloud">PIN PROVIDED</span></div>
+          <div class="check-item"><span class="check-label">6. Frame / Chassis</span><span class="check-badge badge-warn" id="chk_cosmetic">MINOR SCUFFS</span></div>
+          <div class="check-item"><span class="check-label">7. Audio / Microphone</span><span class="check-badge badge-fail" id="chk_audio">FAIL (SHORT)</span></div>
+          <div class="check-item"><span class="check-label">8. USB-C Charge Port</span><span class="check-badge badge-pass" id="chk_charge">PASS</span></div>
+          <div class="check-item"><span class="check-label">9. Front/Rear Cameras</span><span class="check-badge badge-pass" id="chk_camera">PASS</span></div>
+          <div class="check-item"><span class="check-label">10. Wi-Fi / Bluetooth</span><span class="check-badge badge-pass" id="chk_wifi">PASS</span></div>
+          <div class="check-item"><span class="check-label">11. Battery Health</span><span class="check-badge badge-pass" id="chk_battery">92% MAXIMUM</span></div>
+          <div class="check-item"><span class="check-label">12. Ultrasonic Seal</span><span class="check-badge badge-pass" id="chk_seal">CERTIFIED</span></div>
         </div>
-        <button style="width:100%; background:#10B981; color:#FFF; border:none; padding:12px; margin-top:14px; font-weight:700; border-radius:6px; cursor:pointer;" onclick="alert('Estimate Approved! Technician instructed to finalize burn-in test.')">1-CLICK APPROVE ESTIMATE VIA WHATSAPP</button>
+        <div style="font-size:11px; color:#64748B; font-family:var(--font-mono); margin-top:14px; line-height:1.4;" id="chkNotes">
+          Visual physical inspection clean. SIM tray LCI white. Touch and FaceID operational. Audio loopback test failed with 0dB input signal.
+        </div>
+      </section>
+
+      <!-- Microscope & Thermal Lightbox -->
+      <section class="microscope-card">
+        <div class="section-headline">
+          <span>HIGH-MAGNIFICATION LAB INSPECTION</span>
+          <span style="font-size:11px; color:#0284C7;">LEICA S9i STEREO</span>
+        </div>
+
+        <div class="photo-tab-bar">
+          <button type="button" class="photo-tab active" onclick="switchInspectionPhoto('microscope-pmic-diode', this)">🔬 Audio PMIC (40x)</button>
+          <button type="button" class="photo-tab" onclick="switchInspectionPhoto('thermal-cell-balance', this)">🔥 FLIR Thermal 74°C</button>
+          <button type="button" class="photo-tab" onclick="switchInspectionPhoto('corrosion-under-bga', this)">⚡ CD3217 BGA Ingress</button>
+        </div>
+
+        <div class="microscope-viewer">
+          <div class="microscope-stage" id="microscopeStage">
+            <!-- Inline SVG rendered dynamically -->
+          </div>
+          <div class="photo-caption-bar">
+            <span id="microscopeSpec">40x Optical • Dual Gooseneck Ring Light</span>
+            <span style="color:#38BDF8;">TAP TO INSPECT</span>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#475569; margin-top:10px; font-family:var(--font-mono);" id="microscopeCaption">
+          Visual inspection under Leica S9i 40x stereo microscope revealing micro-cracked solder ball array on Audio PMIC (U3100) and diode thermal cratering.
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Customer Estimate Approval Card -->
+    <section class="estimate-card" id="estimateApprovalCard">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span class="quote-badge">ITEMIZED ESTIMATE FOR WORK ORDER AUTHORIZATION</span>
+          <h3 style="font-size:18px; font-weight:800; color:#0F172A; margin-top:4px;">Technician Diagnostic & Repair Estimate</h3>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--font-mono); font-size:11px; color:#64748B;">ESTIMATE STATUS:</div>
+          <div style="font-family:var(--font-mono); font-weight:800; font-size:14px; color:#D97706;" id="estimateStatusLabel">AWAITING CLIENT AUTHORIZATION</div>
+        </div>
+      </div>
+
+      <table class="estimate-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Description & Component Specification</th>
+            <th style="text-align:center;">Qty</th>
+            <th style="text-align:right;">Rate (₹)</th>
+            <th style="text-align:right;">Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="estimateItemsBody">
+          <!-- Dynamically populated -->
+          <tr>
+            <td><span class="check-badge badge-pass">PART</span></td>
+            <td><strong>Apple Audio PMIC & Codec Power Diode IC</strong> (SKU: IC-AP-PMIC-15)</td>
+            <td style="text-align:center;">1</td>
+            <td style="text-align:right; font-family:var(--font-mono);">₹2,800.00</td>
+            <td style="text-align:right; font-family:var(--font-mono); font-weight:600;">₹2,800.00</td>
+          </tr>
+          <tr>
+            <td><span class="check-badge badge-warn">LABOR</span></td>
+            <td><strong>Precision Micro-BGA Stencil Soldering & Laser Reballing</strong></td>
+            <td style="text-align:center;">1</td>
+            <td style="text-align:right; font-family:var(--font-mono);">₹1,700.00</td>
+            <td style="text-align:right; font-family:var(--font-mono); font-weight:600;">₹1,700.00</td>
+          </tr>
+          <tr>
+            <td><span class="check-badge badge-untested">DIAGNOSTIC</span></td>
+            <td><strong>Ultrasonic PCB Deoxidation & Chemical Thermal Bake</strong></td>
+            <td style="text-align:center;">1</td>
+            <td style="text-align:right; font-family:var(--font-mono);">₹350.00</td>
+            <td style="text-align:right; font-family:var(--font-mono); font-weight:600;">₹350.00</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="4" style="text-align:right; padding-top:14px;">TOTAL PAYABLE (INCL. 90-DAY WARRANTY & GST):</td>
+            <td style="text-align:right; padding-top:14px; font-family:var(--font-mono); font-size:20px; color:#0284C7;" id="estimateTotalLabel">₹4,850.00</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- 1-Tap Action Buttons -->
+      <div class="action-btn-row" id="approvalActionRow">
+        <button type="button" class="btn-approve" id="approveEstimateBtn" onclick="authorizeEstimate()">
+          <span>✓ APPROVE ESTIMATE (AUTHORIZE <span id="authAmountSpan">₹4,850</span>)</span>
+        </button>
+        <button type="button" class="btn-decline" id="declineEstimateBtn" onclick="declineEstimatePrompt()">
+          <span>✕ Request Return (Decline)</span>
+        </button>
+      </div>
+
+      <!-- Confirmation Banners -->
+      <div class="approval-confirmed-banner" id="approvalConfirmedBanner">
+        <div style="font-weight:800; font-size:15px; margin-bottom:4px;">🎉 REPAIR ESTIMATE AUTHORIZED BY CLIENT</div>
+        <p>Your authorization has been transmitted directly to Technician <strong id="assignedTechBanner">Rahul Sharma</strong> on Bench #03. Micro-soldering work order #WO-8842 has commenced. You will receive an SMS and WhatsApp ping once 24h burn-in testing is complete.</p>
+        <div style="margin-top:10px;">
+          <a href="#" id="waUpdateLink" target="_blank" style="display:inline-block; background:#166534; color:#FFF; text-decoration:none; padding:6px 12px; border-radius:4px; font-weight:700; font-size:12px;">💬 Message Bench Technician on WhatsApp</a>
+        </div>
+      </div>
+
+      <div class="declined-banner" id="declineConfirmedBanner">
+        <div style="font-weight:800; font-size:15px; margin-bottom:4px;">⚠️ ESTIMATE DECLINED • RETURN REQUESTED</div>
+        <p>Repair declined. Your device is being reassembled by our triage team and scheduled for return handover. No charges have been applied.</p>
+      </div>
+    </section>
+
+    <!-- Diagnostic Timeline History -->
+    <section class="timeline-card">
+      <div class="section-headline">
+        <span>DIAGNOSTIC TELEMETRY & EVENT LOG</span>
+        <span style="font-size:11px; color:#64748B;" id="timelineEventCount">4 MILESTONES RECORDED</span>
+      </div>
+      <ul class="timeline-list" id="timelineList">
+        <!-- Dynamically rendered -->
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- Technical Footer -->
+  <footer class="workbench-footer">
+    <div class="footer-inner">
+      <div>
+        <div style="font-weight:800; color:#FFF;" data-wl-brand>APEX FIX // Diagnostic Workbench</div>
+        <div style="font-family:var(--font-mono); font-size:11px; margin-top:2px;">Movement P: ESD Service Workbench & Job-Sheet Tracker</div>
+      </div>
+      <div style="font-family:var(--font-mono); font-size:11px; text-align:right;">
+        <div>DIRECT BENCH HELPLINE: <span data-wl-phone>+91 98470 11223</span></div>
+        <div style="color:#64748B; margin-top:2px;">Zero backdoors • End-to-end component traceability</div>
       </div>
     </div>
-  </div>
+  </footer>
 
   <script>
+    // State
+    let activeJob = null;
+    let inspectionPhotos = {};
+    let activePhotoKey = 'microscope-pmic-diode';
+
+    // Live Clock
+    function updateClock() {
+      const now = new Date();
+      const el = document.getElementById('liveClock');
+      if (el) {
+        el.textContent = now.toTimeString().split(' ')[0] + ' IST';
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Parse URL on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const jobParam = params.get('job') || params.get('id') || params.get('phone') || 'JOB-8842';
+      document.getElementById('trackInput').value = jobParam;
+      fetchJobDetails(jobParam);
+    });
+
+    function setQuery(ticketId) {
+      document.getElementById('trackInput').value = ticketId;
+      fetchJobDetails(ticketId);
+    }
+
     function trackJob() {
-      const q = document.getElementById('jobQuery').value;
-      alert('Tracking verified for ' + q + '. Live bench status: Technician Rahul working on stage 3.');
+      const q = document.getElementById('trackInput').value.trim();
+      if (!q) return;
+      fetchJobDetails(q);
+    }
+
+    async function fetchJobDetails(query) {
+      const btn = document.getElementById('trackSubmitBtn');
+      if (btn) btn.textContent = 'QUERYING...';
+
+      try {
+        const isPhone = /^[0-9+]{8,}$/.test(query.replace(/[\s-]/g, ''));
+        const endpoint = isPhone
+          ? `/api/repairs?phone=${encodeURIComponent(query)}`
+          : `/api/repairs?job=${encodeURIComponent(query)}`;
+
+        const res = await fetch(endpoint);
+        const data = await res.json();
+
+        if (btn) btn.textContent = 'INSPECT BENCH STATUS';
+
+        if (!data.success || !data.job) {
+          alert(data.error || 'Job ticket not found. Please verify your ticket number or phone.');
+          return;
+        }
+
+        activeJob = data.job;
+        if (data.job.photos) {
+          inspectionPhotos = data.job.photos;
+        }
+        renderJobView(activeJob);
+
+        // Update URL query string without reloading
+        const url = new URL(window.location);
+        url.searchParams.set('job', activeJob.id);
+        window.history.replaceState({}, '', url);
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+        if (btn) btn.textContent = 'INSPECT BENCH STATUS';
+        alert('Network error connecting to Diagnostic Lab API. Displaying cached view.');
+      }
+    }
+
+    function renderJobView(job) {
+      // Header Info
+      document.getElementById('devTicketId').textContent = job.id;
+      document.getElementById('devTypeBadge').textContent = (job.device_type || 'DEVICE').toUpperCase();
+      document.getElementById('devPriorityBadge').textContent = 'PRIORITY: ' + (job.priority || 'STANDARD');
+      document.getElementById('devTitle').textContent = `${job.brand} ${job.model}`;
+      document.getElementById('devClient').textContent = job.customer_name;
+      document.getElementById('devSerial').textContent = job.serial_number || 'N/A';
+      document.getElementById('devImei').textContent = job.imei || 'N/A';
+      document.getElementById('devIssueDesc').textContent = job.issue_description;
+
+      // Status Pill
+      const statusBadge = document.getElementById('devStatusBadge');
+      statusBadge.className = 'status-pill ' + (job.stage ? job.stage.toLowerCase() : 'intake');
+      statusBadge.textContent = (job.stage || 'INTAKE').replace(/_/g, ' ');
+
+      // Stepper Stage Progress
+      updateStepperNodes(job.stage);
+
+      // Technician Card
+      const initials = (job.assigned_technician || 'Rahul Sharma').split(' ').map(p => p[0]).join('').slice(0, 2);
+      document.getElementById('techInitials').textContent = initials;
+      document.getElementById('techName').textContent = job.assigned_technician || 'Rahul Sharma';
+      document.getElementById('techStation').textContent = `${job.bench_number || 'Bench #03'} • Lead Hardware Specialist`;
+      document.getElementById('benchNoteText').textContent = job.notes ? `"${job.notes}"` : '"Bench inspection in progress."';
+
+      // 12-Point Checklist
+      if (job.checklist) {
+        renderChecklist(job.checklist);
+      }
+
+      // Photos
+      if (job.photos) {
+        renderPhoto(activePhotoKey);
+      }
+
+      // Estimate Breakdown
+      renderEstimates(job);
+
+      // Timeline Log
+      renderTimeline(job.timeline || []);
+
+      // If already approved or declined
+      handleApprovalState(job);
+    }
+
+    function updateStepperNodes(stage) {
+      const stageMap = {
+        'INTAKE': 1,
+        'DIAGNOSIS': 2,
+        'AWAITING_APPROVAL': 3,
+        'IN_REPAIR': 4,
+        'READY_FOR_PICKUP': 5,
+        'DELIVERED': 6
+      };
+      const currentLevel = stageMap[stage] || 3;
+      document.getElementById('currentStageProgress').textContent = `STAGE ${currentLevel} OF 6: ${(stage || 'INTAKE').replace(/_/g, ' ')}`;
+
+      for (let i = 1; i <= 6; i++) {
+        const node = document.getElementById(`stepNode${i}`);
+        if (!node) continue;
+        node.classList.remove('completed', 'active');
+        if (i < currentLevel) {
+          node.classList.add('completed');
+          node.querySelector('.step-node').textContent = '✓';
+        } else if (i === currentLevel) {
+          node.classList.add('active');
+          node.querySelector('.step-node').textContent = `0${i}`;
+        } else {
+          node.querySelector('.step-node').textContent = `0${i}`;
+        }
+      }
+    }
+
+    function renderChecklist(chk) {
+      const setBadge = (id, val, textVal) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = 'check-badge';
+        if (val === 'PASS' || val === 1 || val === 'WHITE' || val === 'UNLOCKED' || val === 'PIN_PROVIDED') {
+          el.classList.add('badge-pass');
+          el.textContent = textVal || (val === 1 ? 'PASS' : val);
+        } else if (val === 'FAIL' || val === 0 || val === 'RED' || val === 'LOCKED' || val === 'DENTED_FRAME' || val === 'SHATTERED_BACK') {
+          el.classList.add('badge-fail');
+          el.textContent = textVal || (val === 0 ? 'FAIL' : val);
+        } else {
+          el.classList.add('badge-warn');
+          el.textContent = textVal || val;
+        }
+      };
+
+      setBadge('chk_power', chk.power_on, chk.power_on ? 'PASS' : 'FAIL (NO POWER)');
+      setBadge('chk_display', chk.display_touch_status);
+      setBadge('chk_biometrics', chk.biometrics_status);
+      setBadge('chk_lci', chk.liquid_damage_lci, chk.liquid_damage_lci === 'RED' ? 'TRIPPED RED' : 'WHITE (INTACT)');
+      setBadge('chk_icloud', chk.icloud_passcode_status);
+      setBadge('chk_cosmetic', chk.cosmetic_scratches);
+      setBadge('chk_audio', chk.audio_mic);
+      setBadge('chk_charge', chk.charging_port);
+      setBadge('chk_camera', chk.camera_front_rear);
+      setBadge('chk_wifi', chk.wifi_bluetooth);
+      setBadge('chk_battery', chk.battery_health_pct > 80 ? 'PASS' : 'WARN', `${chk.battery_health_pct}% HEALTH`);
+
+      if (chk.physical_inspection_notes) {
+        document.getElementById('chkNotes').textContent = chk.physical_inspection_notes;
+      }
+    }
+
+    function switchInspectionPhoto(key, btnEl) {
+      activePhotoKey = key;
+      document.querySelectorAll('.photo-tab').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      renderPhoto(key);
+    }
+
+    function renderPhoto(key) {
+      const p = inspectionPhotos[key];
+      if (!p) return;
+      const stage = document.getElementById('microscopeStage');
+      if (p.svg) {
+        if (p.svg.startsWith('data:image/svg+xml;utf8,')) {
+          stage.innerHTML = decodeURIComponent(p.svg.replace('data:image/svg+xml;utf8,', ''));
+        } else {
+          stage.innerHTML = `<img src="${p.svg}" style="max-width:100%; max-height:100%; display:block;" />`;
+        }
+      }
+      document.getElementById('microscopeSpec').textContent = p.spec || '40x Optical Magnification';
+      document.getElementById('microscopeCaption').textContent = p.caption || p.title;
+    }
+
+    function renderEstimates(job) {
+      const tbody = document.getElementById('estimateItemsBody');
+      tbody.innerHTML = '';
+
+      const items = job.estimates && job.estimates.length > 0 ? job.estimates : [
+        { item_type: 'PART', description: 'Genuine Replacement Part', part_sku: 'GEN-PART', customer_price_inr: job.total_estimate_inr * 0.6, quantity: 1 },
+        { item_type: 'LABOR', description: 'Technician Labor & Calibration', part_sku: 'LBR-01', customer_price_inr: job.total_estimate_inr * 0.4, quantity: 1 }
+      ];
+
+      items.forEach(item => {
+        const tr = document.createElement('tr');
+        const badgeClass = item.item_type === 'PART' ? 'badge-pass' : (item.item_type === 'LABOR' ? 'badge-warn' : 'badge-untested');
+        const rate = Number(item.customer_price_inr) || 0;
+        const qty = Number(item.quantity) || 1;
+        const amt = rate * qty;
+
+        tr.innerHTML = `
+          <td><span class="check-badge ${badgeClass}">${item.item_type}</span></td>
+          <td><strong>${item.description}</strong> ${item.part_sku ? `<span style="color:#64748B; font-family:var(--font-mono); font-size:11px;">(${item.part_sku})</span>` : ''}</td>
+          <td style="text-align:center; font-family:var(--font-mono);">${qty}</td>
+          <td style="text-align:right; font-family:var(--font-mono);">₹${rate.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+          <td style="text-align:right; font-family:var(--font-mono); font-weight:600;">₹${amt.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const total = Number(job.total_estimate_inr) || 0;
+      document.getElementById('estimateTotalLabel').textContent = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById('authAmountSpan').textContent = '₹' + total.toLocaleString('en-IN');
+    }
+
+    function renderTimeline(timeline) {
+      const ul = document.getElementById('timelineList');
+      ul.innerHTML = '';
+      document.getElementById('timelineEventCount').textContent = `${timeline.length} MILESTONES RECORDED`;
+
+      timeline.forEach(evt => {
+        const li = document.createElement('li');
+        li.className = 'timeline-item';
+        const dateStr = evt.timestamp ? new Date(evt.timestamp).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Logged';
+        li.innerHTML = `
+          <div class="timeline-title">${evt.title}</div>
+          <div class="timeline-meta">${dateStr} • By ${evt.technician || 'Technician'} • Stage: ${evt.stage}</div>
+          ${evt.notes ? `<div class="timeline-body">${evt.notes}</div>` : ''}
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    function handleApprovalState(job) {
+      const card = document.getElementById('estimateApprovalCard');
+      const actionRow = document.getElementById('approvalActionRow');
+      const authBanner = document.getElementById('approvalConfirmedBanner');
+      const decBanner = document.getElementById('declineConfirmedBanner');
+      const statusLabel = document.getElementById('estimateStatusLabel');
+
+      if (job.customer_approved === 1 || job.stage === 'IN_REPAIR' || job.stage === 'READY_FOR_PICKUP' || job.stage === 'DELIVERED') {
+        card.classList.add('is-approved');
+        card.classList.remove('is-declined');
+        actionRow.style.display = 'none';
+        authBanner.style.display = 'block';
+        decBanner.style.display = 'none';
+        statusLabel.textContent = 'CLIENT AUTHORIZED (IN WORKFLOW)';
+        statusLabel.style.color = '#10B981';
+
+        document.getElementById('assignedTechBanner').textContent = job.assigned_technician || 'Rahul Sharma';
+
+        // Pre-fill WhatsApp link
+        const waLink = document.getElementById('waUpdateLink');
+        const phone = (window.__WL_CONFIG && window.__WL_CONFIG.wa) || job.customer_phone || '919847011223';
+        const text = encodeURIComponent(`Hi ${job.assigned_technician || 'Technician'}, I have authorized repair work order #${job.id} for my ${job.brand} ${job.model} (₹${job.total_estimate_inr}). Please proceed.`);
+        waLink.href = `https://wa.me/${phone}?text=${text}`;
+
+      } else if (job.customer_approved === 0) {
+        card.classList.add('is-declined');
+        card.classList.remove('is-approved');
+        actionRow.style.display = 'none';
+        authBanner.style.display = 'none';
+        decBanner.style.display = 'block';
+        statusLabel.textContent = 'ESTIMATE DECLINED BY CLIENT';
+        statusLabel.style.color = '#EF4444';
+      } else {
+        card.classList.remove('is-approved', 'is-declined');
+        actionRow.style.display = 'flex';
+        authBanner.style.display = 'none';
+        decBanner.style.display = 'none';
+        statusLabel.textContent = 'AWAITING CLIENT AUTHORIZATION';
+        statusLabel.style.color = '#D97706';
+      }
+    }
+
+    async function authorizeEstimate() {
+      if (!activeJob) return;
+      const btn = document.getElementById('approveEstimateBtn');
+      btn.disabled = true;
+      btn.textContent = 'COMMITTING AUTHORIZATION...';
+
+      try {
+        const res = await fetch('/api/repairs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_id: activeJob.id,
+            action: 'approve',
+            customer_name: activeJob.customer_name
+          })
+        });
+
+        const result = await res.json();
+        if (result.success && result.job) {
+          activeJob = result.job;
+          renderJobView(activeJob);
+        } else {
+          alert('Failed to authorize: ' + (result.error || 'Server error'));
+          btn.disabled = false;
+          btn.innerHTML = `<span>✓ APPROVE ESTIMATE (AUTHORIZE ₹${activeJob.total_estimate_inr})</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Network error authorizing estimate.');
+        btn.disabled = false;
+      }
+    }
+
+    async function declineEstimatePrompt() {
+      if (!activeJob) return;
+      const reason = prompt('Please specify reason for declining repair (e.g. Beyond economical repair, upgrading device):', 'Opted to purchase new device');
+      if (reason === null) return;
+
+      try {
+        const res = await fetch('/api/repairs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_id: activeJob.id,
+            action: 'decline',
+            customer_name: activeJob.customer_name,
+            return_reason: reason
+          })
+        });
+
+        const result = await res.json();
+        if (result.success && result.job) {
+          activeJob = result.job;
+          renderJobView(activeJob);
+        } else {
+          alert('Error: ' + (result.error || 'Failed to update'));
+        }
+      } catch (err) {
+        alert('Network error declining estimate.');
+      }
+    }
+
+    function printJobSheet() {
+      window.print();
     }
   </script>
 </body>
